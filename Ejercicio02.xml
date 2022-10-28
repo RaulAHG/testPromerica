@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<Datos>
+	<Sistema>PagosOnLine</Sistema>
+	<Latitud>14.529932</Latitud>
+	<Longitud>-90.5541582</Longitud>
+	<Tarjeta>
+		<Nombre>Jose Miguel Gonzales</Nombre>
+		<Numero>4735090018822726</Numero>
+		<Expide>10/25</Expide>
+		<NuPrivado>567</NuPrivado>
+		<Monto>2000</Monto>
+		<Description>Compra de prueba.</Description>
+	</Tarjeta>
+	<IdCliente>23213</IdCliente>
+</Datos>

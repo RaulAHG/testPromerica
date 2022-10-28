@@ -1,0 +1,138 @@
+using System;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace libAccesoDatos
+{
+    internal class AccesoDatos
+    {
+        private SqlConnection odcConexion = null;
+        private SqlTransaction odtTransaction = null;
+        private int vCantidadFilasAfectadas = 0;
+
+        public AccesoDatos(string strCadenaConexion)
+        {
+            this.odcConexion = new SqlConnection(strCadenaConexion);
+        }
+
+        public void Conectar()
+        {
+            try
+            {
+                odcConexion.Open();
+            }
+            catch (Exception exException)
+            {
+                throw new Exception("Ha ocurrido un error conectandose a la base de datos" + "\n\nDetalle del Error:\n" + exException.Message);
+            }
+        }
+
+        public void Desconectar()
+        {
+            try
+            {
+                odcConexion.Close();
+                odcConexion.Dispose();
+                odcConexion = null;
+            }
+            catch (Exception exException)
+            {
+                throw new Exception("Ha ocurrido un error desconectando la base de datos" + "\n\nDetalle del Error:\n" + exException.Message);
+            }
+        }
+		
+        public void IniciarTransaccion()
+        {
+            try
+            {
+                this.odtTransaction = odcConexion.BeginTransaction();
+            }
+            catch (Exception exException)
+            {
+                throw new Exception("Ha ocurrido un error al iniciar la transacción en la base de datos." + "\n\nDetalle del Error:\n" + exException.Message);
+            }
+        }
+
+        public void ConfirmarTransaccion()
+        {
+            try
+            {
+                this.odtTransaction.Commit();
+            }
+            catch (Exception exException)
+            {
+                throw new Exception("Ha ocurrido un error al confirmar los cambios de la transacción en la base de datos." + "\n\nDetalle del Error:\n" + exException.Message);
+            }
+        }
+
+        public void CancelarTransaccion()
+        {
+            try
+            {
+                this.odtTransaction.Rollback();
+            }
+            catch (Exception exException)
+            {
+                throw new Exception("Ha ocurrido un error al retroceder los cambios de la transacción en la base de datos." + "\n\nDetalle del Error:\n" + exException.Message);
+            }
+        }
+
+        public int FilasAfectadas(){
+                return vCantidadFilasAfectadas;
+        }
+		
+        public DataSet Consultar(string strSQL){
+            try
+            {
+                SqlDataAdapter odaAdaptador = new SqlDataAdapter();
+                odaAdaptador.SelectCommand = new SqlCommand();
+                odaAdaptador.SelectCommand.CommandText = strSQL;
+                odaAdaptador.SelectCommand.Connection = odcConexion;
+                DataSet dsDatos = new DataSet();
+                odaAdaptador.Fill(dsDatos);
+				vCantidadFilasAfectadas = dsDatos.Tables[0].Rows.Count();
+                return dsDatos;
+            }
+            catch (Exception exException)
+            {
+                throw new Exception("Ha ocurrido un error ejecutando el query:\n" + strSQL + "\n\nDetalle del Error:\n" + exException.Message);
+            }
+        }
+
+        public int EjecutarOperacion(string strSQL)
+        {
+            try
+            {
+                SqlCommand odcComando = new SqlCommand(strSQL);
+                odcComando.Connection = odcConexion;
+                if (odtTransaction != null) odcComando.Transaction = odtTransaction; //Se verifica si se está en una transacción.
+                vCantidadFilasAfectadas = odcComando.ExecuteNonQuery();
+				return vCantidadFilasAfectadas;
+            }
+            catch (Exception exException)
+            {
+                throw new Exception("Ha ocurrido un error ejecutando el query:\n" + strSQL + "\n\nDetalle del Error:\n" + exException.Message);
+            }
+        }
+
+        public int EjecutarOperacion(string strSQL, object[] objParametros)
+        {
+            try
+            {
+                SqlCommand odcComando = new SqlCommand(strSQL);
+                foreach (SqlParameter objParametro in objParametros)
+                {
+                    odcComando.Parameters.Add((SqlParameter)objParametro);
+                }
+                odcComando.Connection = odcConexion;
+                if (odtTransaction != null) odcComando.Transaction = odtTransaction; //Se verifica si se está en una transacción.
+                vCantidadFilasAfectadas = odcComando.ExecuteNonQuery();
+				return vCantidadFilasAfectadas;
+            }
+            catch (Exception exException)
+            {
+                throw new Exception("Ha ocurrido un error ejecutando el query:\n" + strSQL + "\n\nDetalle del Error:\n" + exException.Message);
+            }
+        }
+    }
+}
